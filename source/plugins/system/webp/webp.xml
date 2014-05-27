@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="2.5" type="plugin" group="system" method="upgrade">
+    <name>PLG_SYSTEM_WEBP</name>
+    <author>Yireo</author>
+    <creationDate>April 2014</creationDate>
+    <copyright>Copyright (C) 2014 Yireo.com. All rights reserved.</copyright>
+    <license>http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL</license>
+    <authorEmail>info@yireo.com</authorEmail>
+    <authorUrl>www.yireo.com</authorUrl>
+    <version>0.0.7</version>
+    <description>PLG_SYSTEM_WEBP_DESC</description>
+
+    <files>
+        <filename plugin="webp">webp.php</filename>
+        <filename>index.html</filename>
+    </files>
+
+    <media destination="plg_webp">
+        <folder>js</folder>
+    </media>
+
+    <languages>
+        <language tag="en-GB">en-GB.plg_system_webp.ini</language>
+        <language tag="en-GB">en-GB.plg_system_webp.sys.ini</language>
+    </languages>
+
+    <config>
+        <fields name="params">
+            <fieldset name="basic">
+                <field name="cwebp" type="text" label="PLG_SYSTEM_WEBP_FIELD_CWEBP" description="PLG_SYSTEM_WEBP_FIELD_CWEBP_DESC" />
+                <field name="jsdetect" type="list" default="0" label="PLG_SYSTEM_WEBP_FIELD_JSDETECT" description="PLG_SYSTEM_WEBP_FIELD_JSDETECT_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="jquery" type="list" default="1" label="PLG_SYSTEM_WEBP_FIELD_JQUERY" description="PLG_SYSTEM_WEBP_FIELD_JQUERY_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+            </fieldset>
+        </fields>
+    </config>
+
+    <updateservers>
+        <server type="extension" priority="1" name="plg_system_webp">http://www.yireo.com/updates/plg_system_webp.xml</server>
+    </updateservers>
+</extension>
