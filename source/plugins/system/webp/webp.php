@@ -3,7 +3,7 @@
  * Joomla! System plugin - WebP
  *
  * @author Yireo (info@yireo.com)
- * @copyright Copyright 2014
+ * @copyright Copyright 2015
  * @license GNU Public License
  * @link http://www.yireo.com
  */
@@ -42,12 +42,13 @@ class plgSystemWebP extends JPlugin
             $webp_support = true;
 
         // Check for Chrome 9 or higher
-        } elseif(isset($_SERVER['HTTP_USER_AGENT']) && preg_match('/Chrome\/([0-9]+)/', $_SERVER['HTTP_USER_AGENT'], $match) && $match[1] > 8) {
+        } elseif(preg_match('/Chrome\/([0-9]+)/', $_SERVER['HTTP_USER_AGENT'], $match) && $match[1] > 8) {
             $webp_support = true;
         }
 
         if($webp_support == true) {
             JFactory::getConfig()->set('webp', true);
+            JHtml::_('jquery.framework');
         }
     }
 
@@ -66,13 +67,12 @@ class plgSystemWebP extends JPlugin
         }
 
         // Check the WebP flag
-        $jsdetect = $this->getParams()->get('jsdetect', 0);
-        if(JFactory::getConfig()->get('webp') == false && $jsdetect != 1) {
+        if(JFactory::getConfig()->get('webp') == false) {
             return false;
         }
 
         // Check for the cwebp binary
-        $cwebp = $this->getParams()->get('cwebp');
+        $cwebp = $this->params->get('cwebp');
         if(empty($cwebp)) {
             return false;
         }
@@ -86,11 +86,12 @@ class plgSystemWebP extends JPlugin
         $body = JResponse::getBody();
 
         $html = array();
-        if(preg_match_all('/src=([\"\']?)(.*)\.(png|jpg|jpeg)([\"\']?)/', $body, $matches)) {
+        if(preg_match_all('/\ src=\"([^\"]+)\.(png|jpg|jpeg)\"/', $body, $matches)) {
 
+            $imageList = array();
             foreach($matches[0] as $index => $match) {
 
-                $imageUrl = $matches[2][$index].'.'.$matches[3][$index];
+                $imageUrl = $matches[1][$index].'.'.$matches[2][$index];
                 if(preg_match('/^(http|https):\/\//', $imageUrl) && strstr($imageUrl, JURI::root())) {
                     $imageUrl = str_replace(JURI::root(), '', $imageUrl);
                 }
@@ -120,42 +121,34 @@ class plgSystemWebP extends JPlugin
 
                     // Only replace the WebP image if it exists
                     if(is_file($webpPath) && filesize($webpPath) > 0) {
-                        $webpImageUrl = preg_replace('/\.(png|jpg|jpeg)$/', '.webp', $imageUrl);
-                        $replaceMatch = preg_replace('/^src=/', 'src="'.$webpImageUrl.'" data-src=', $matches[0][$index]);
-                        $body = str_replace($matches[0][$index], $replaceMatch, $body);
+
+                        // Add the image to the list
+                        $image = $matches[1][$index].'.'.$matches[2][$index];
+                        $webpImage = preg_replace('/\.(png|jpg|jpeg)$/', '.webp', $image);
+                        $imageList[md5($image)] = array('orig' => $image, 'webp' => $webpImage);
+
+                        // Change the image
+                        $htmlTag = $matches[0][$index];
+                        $newHtmlTag = str_replace('src="'.$image.'"', 'data-img="'.md5($image).'"', $htmlTag);
+                        $body = str_replace($htmlTag, $newHtmlTag, $body);
                     }
                 }
             }
+
+            if(!empty($imageList)) {
+                $html[] = '<script type="text/javascript">';
+                $html[] = 'if(webpReplacements == null) { var webpReplacements = new Object(); }';
+                foreach($imageList as $name => $value) {
+                    $html[] = 'webpReplacements[\''.$name.'\'] = '.json_encode($value);
+                }
+                $html[] = '</script>';
+            }
         }
 
-        $html[] = '<script>var hasWebP = '.(int)JFactory::getConfig()->get('webp').';</script>';
-        $jquery = (bool)$this->getParams()->get('jquery', 1);
-        if($jquery) {
-            $html[] = '<script src="'.JURI::root().'media/plg_webp/js/jquery.detect.js" type="text/javascript"></script>';
-        } else {
-            $html[] = '<script src="'.JURI::root().'media/plg_webp/js/detect.js" type="text/javascript"></script>';
-        }
+        $html[] = '<script src="'.JURI::root().'media/plg_webp/js/jquery.cookie.js" type="text/javascript"></script>';
+        $html[] = '<script src="'.JURI::root().'media/plg_webp/js/detect.js" type="text/javascript"></script>';
         $html = implode("\n", $html)."\n";
         $body = str_replace('</body>', $html.'</body>', $body);
         JResponse::setBody($body);
-    }
-
-    /**
-     * Load the parameters
-     *
-     * @param null
-     * @return JParameter
-     */
-    private function getParams()
-    {
-        jimport('joomla.version');
-        $version = new JVersion();
-        if(version_compare($version->RELEASE, '1.5', 'eq')) {
-            $plugin = JPluginHelper::getPlugin('system', 'webp');
-            $params = new JParameter($plugin->params);
-            return $params;
-        } else {
-            return $this->params;
-        }
     }
 }
