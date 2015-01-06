@@ -71,14 +71,8 @@ class plgSystemWebP extends JPlugin
             return false;
         }
 
-        // Check for the cwebp binary
-        $cwebp = $this->params->get('cwebp');
-        if(empty($cwebp)) {
-            return false;
-        }
-
-        // Check for PHP-exec
-        if(function_exists('exec') == false) {
+        // Check whether WebP conversion is usable at all
+        if($this->allowConvertToWebp() == false) {
             return false;
         }
 
@@ -105,18 +99,12 @@ class plgSystemWebP extends JPlugin
                     // Check if we need to create a WebP image (if it doesn't exist yet, or if the original image is modified)
                     if(is_file($webpPath) == false || filemtime($imagePath) > filemtime($webpPath)) {
 
-                        // Detect alpha-transparency in PNG-images and skip it
-                        if(preg_match('/\.png$/', $imagePath)) {
-                            $imageContents = @file_get_contents($imagePath);
-                            $colorType = ord(@file_get_contents($imagePath, NULL, NULL, 25, 1));
-                            if($colorType == 6 || $colorType == 4) {
-                                continue;
-                            } elseif(stripos($imageContents, 'PLTE') !== false && stripos($imageContents, 'tRNS') !== false) {
-                                continue;
-                            }
-                        }
+                        // Convert to WebP
+                        $rt = $this->convertToWebp($imagePath, $webpPath);
 
-                        exec("$cwebp -quiet $imagePath -o $webpPath");
+                        if($rt == false) {
+                            continue;
+                        }
                     }
 
                     // Only replace the WebP image if it exists
@@ -146,9 +134,60 @@ class plgSystemWebP extends JPlugin
         }
 
         $html[] = '<script src="'.JURI::root().'media/plg_webp/js/jquery.cookie.js" type="text/javascript"></script>';
-        $html[] = '<script src="'.JURI::root().'media/plg_webp/js/detect.js" type="text/javascript"></script>';
+        $html[] = '<script src="'.JURI::root().'media/plg_webp/js/jquery.detect.js" type="text/javascript"></script>';
         $html = implode("\n", $html)."\n";
         $body = str_replace('</body>', $html.'</body>', $body);
         JResponse::setBody($body);
+    }
+
+    protected function allowConvertToWebp()
+    {
+        // Check for GD support
+        if (function_exists('imagewebp')) {
+            return true;
+        } 
+
+        // Check for PHP exec() and cwebp binary
+        $cwebp = $this->params->get('cwebp');
+        if (function_exists('exec') == true && !empty($cwepb)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    protected function convertToWebp($imagePath, $webpPath)
+    {
+        // If no conversion is possible, exit
+        if($this->allowConvertToWebp() == false) {
+            return false;
+        }
+
+        // Detect alpha-transparency in PNG-images and skip it
+        if(preg_match('/\.png$/', $imagePath)) {
+            $imageContents = @file_get_contents($imagePath);
+            $colorType = ord(@file_get_contents($imagePath, NULL, NULL, 25, 1));
+            if($colorType == 6 || $colorType == 4) {
+                return false;
+            } elseif(stripos($imageContents, 'PLTE') !== false && stripos($imageContents, 'tRNS') !== false) {
+                return false;
+            }
+        }
+
+        // GD function
+        if (function_exists('imagewebp')) {
+            if(preg_match('/\.png$/', $imagePath) && function_exists('imagecreatefrompng')) {
+                $image = imagecreatefrompng($imagePath);
+            } elseif(preg_match('/\.(jpg|jpeg)$/', $imagePath) && function_exists('imagecreatefromjpeg')) {
+                $image = imagecreatefromjpeg($imagePath);
+            } else {
+                return false;
+            }
+
+            imagewebp($image, $webpPath);
+        }
+
+        exec("$cwebp -quiet $imagePath -o $webpPath");
+        return true;
     }
 }
