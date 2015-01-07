@@ -113,7 +113,7 @@ class plgSystemWebP extends JPlugin
                         // Add the image to the list
                         $image = $matches[1][$index].'.'.$matches[2][$index];
                         $webpImage = preg_replace('/\.(png|jpg|jpeg)$/', '.webp', $image);
-                        $imageList[md5($image)] = array('orig' => $image, 'webp' => $webpImage);
+                        $imageList[md5($image)] = array('orig' => JURI::root().$image, 'webp' => JURI::root().$webpImage);
 
                         // Change the image
                         $htmlTag = $matches[0][$index];
@@ -124,7 +124,7 @@ class plgSystemWebP extends JPlugin
             }
 
             if(!empty($imageList)) {
-                $html[] = '<script type="text/javascript">';
+                $html[] = '<script>';
                 $html[] = 'if(webpReplacements == null) { var webpReplacements = new Object(); }';
                 foreach($imageList as $name => $value) {
                     $html[] = 'webpReplacements[\''.$name.'\'] = '.json_encode($value);
@@ -149,7 +149,7 @@ class plgSystemWebP extends JPlugin
 
         // Check for PHP exec() and cwebp binary
         $cwebp = $this->params->get('cwebp');
-        if (function_exists('exec') == true && !empty($cwepb)) {
+        if (function_exists('exec') == true && !empty($cwebp)) {
             return true;
         }
 
@@ -187,6 +187,11 @@ class plgSystemWebP extends JPlugin
             imagewebp($image, $webpPath);
         }
 
+        $cwebp = $this->params->get('cwebp');
+        if(empty($cwebp)) {
+            return false;
+        }
+            
         exec("$cwebp -quiet $imagePath -o $webpPath");
         return true;
     }
