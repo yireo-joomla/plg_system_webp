@@ -25,7 +25,7 @@ if(hasWebp == false) {
   Tester.src = 'media/plg_webp/images/test.webp';
 }
 
-if(webpReplacements) {
+if (typeof webpReplacements !== 'undefined') {
   jQuery('img').each(function(img) {
     dataImg = jQuery(this).attr('data-img');
     if(dataImg && webpReplacements[dataImg]) {
