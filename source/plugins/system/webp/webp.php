@@ -262,7 +262,7 @@ class plgSystemWebP extends JPlugin
 		}
 
 		// GD function
-		if (function_exists('imagewebp'))
+		if ($this->params->get('enable_phpgd', 1) == 1 && function_exists('imagewebp'))
 		{
 			if (preg_match('/\.png$/', $imagePath) && function_exists('imagecreatefrompng'))
 			{
@@ -279,6 +279,11 @@ class plgSystemWebP extends JPlugin
 
 			imagewebp($image, $webpPath);
 		}
+
+        if ($this->params->get('enable_cwebp', 1) == 0)
+        {
+            return false;
+        }
 
 		$cwebp = $this->params->get('cwebp');
 
