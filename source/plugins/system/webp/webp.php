@@ -154,11 +154,6 @@ class plgSystemWebP extends JPlugin
 						$image = $originalImageUrl;
 						$webpImage = preg_replace('/\.(png|jpg|jpeg)$/', '.webp', $image);
 
-						if (preg_match('/^(http:|https:|\/)/', $image) == false)
-						{
-							$image = JURI::root() . $image;
-						}
-
 						if (preg_match('/^(http:|https:|\/)/', $webpImage) == false)
 						{
 							$webpImage = JURI::root() . $webpImage;

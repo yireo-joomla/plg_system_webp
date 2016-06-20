@@ -7,7 +7,7 @@
     <license>http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL</license>
     <authorEmail>info@yireo.com</authorEmail>
     <authorUrl>www.yireo.com</authorUrl>
-    <version>1.1.4</version>
+    <version>1.1.5</version>
     <description>PLG_SYSTEM_WEBP_DESC</description>
 
     <files>
@@ -45,6 +45,6 @@
     </config>
 
     <updateservers>
-        <server type="extension" priority="1" name="plg_system_webp">http://www.yireo.com/updates/plg_system_webp.xml</server>
+        <server type="extension" priority="1" name="plg_system_webp">https://www.yireo.com/updates/plg_system_webp.xml</server>
     </updateservers>
 </extension>
