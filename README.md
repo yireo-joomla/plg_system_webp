@@ -1,3 +1,3 @@
 WebP for Joomla
 ===============
-This package has been abondoned. No support is given from Yireo.
+This package has been abandoned. No support is given from Yireo.
